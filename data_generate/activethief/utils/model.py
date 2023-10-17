@@ -39,27 +39,7 @@ from sklearn.metrics import f1_score
 from attacks.deepfool import deepfool
 from dsl.base_dsl import one_hot_labels
 
-import matplotlib.pyplot as plt
-import numpy as np
-# import seaborn as sns
-import pandas as pd
-from sklearn.metrics import accuracy_score, confusion_matrix
-from tqdm.notebook import tqdm, trange
 
-import torch
-import torchinfo
-from torch.utils.data import DataLoader
-from torchvision import transforms
-from torchvision.datasets import MNIST
-from torchvision.utils import save_image
-
-from foolbox import PyTorchModel, accuracy, samples
-from foolbox.attacks import FGSM, LinfPGD
-
-from src.black_box.model import BlackBoxModel
-from src.black_box.oracle import get_oracle_prediction
-from src.substitute.datasets import SubstituteDataset, INDICES
-from src.substitute.model import SubstituteModel
 
 def train_model(model, train_dsl, val_dsl, logdir):
     "Trains the model and saves the best model in logdir"
@@ -294,7 +274,8 @@ def true_initial_centers(sess, noise_train_dsl_marked):
 def train_copynet_iter(true_model, copy_model, train_dsl, valid_dsl, test_dsl, logdir_true, logdir_copy):
     """ Trains the copy_model iteratively"""
     budget = cfg.initial_seed+cfg.val_size+cfg.num_iter*cfg.k
-    
+    firts_attach = 0
+    tim=0
     print ("budget: " , budget)
     
     num_batches_tr   = train_dsl.get_num_batches()
@@ -453,6 +434,7 @@ def train_copynet_iter(true_model, copy_model, train_dsl, valid_dsl, test_dsl, l
 
 
                     curr_acc = compute_evaluation_measure(copy_model, sess, test_dsl, copy_model.sum_correct_prediction)
+                    
 
 
                     print ("Test Accuracy (True Dataset): {}".format(curr_acc))
@@ -656,6 +638,9 @@ def train_copynet_iter(true_model, copy_model, train_dsl, valid_dsl, test_dsl, l
             print ("Prediction agreement between source and copy model on selected subset is {}" .format( np.trace(pred_true_count) )   )    
             #pred_match.append(pred_true_count)
             #print agreen_true
+            if np.trace(pred_true_count) > 0.9 and tim==0:
+            	firts_attach=it
+            	tim+=1
 
 
             print ("End of iteration ", it+1)
@@ -668,94 +653,4 @@ def train_copynet_iter(true_model, copy_model, train_dsl, valid_dsl, test_dsl, l
             
         print( "Copynet training completed in {} time" .format( round((time.time() - train_time)/3600, 2)  ))
         print ("---Copynet trainning completed---")
-
-
-def get_jdba_prediction(sess,true_model,img):
-    label=get_predictions(sess, true_model, img, one_hot=cfg.copy_one_hot)
-    return label
-
-def pt_to_numpy(folder_path):
-    pt_tensors = []
-    for file_name in os.listdir(folder_path):
-        if file_name.endswith(".pt"):
-            tensor = torch.load(os.path.join(folder_path, file_name))
-            pt_tensors.append(tensor.cpu())
-
-    # 将 pt tensors 转为 numpy arrays
-    np_arrays = np.array([tensor.numpy().reshape(32, 32, 3) for tensor in pt_tensors])
-    return np_arrays
-def jdba(true_model, copy_model, train_dsl, valid_dsl, test_dsl, logdir_true, logdir_copy):
-
-
-    orig_var_list = [v for v in tf.global_variables() if not v.name.startswith('copy_model')]
-    orig_saver = tf.train.Saver(max_to_keep=cfg.num_checkpoints, var_list=orig_var_list)
-    saver = tf.train.Saver(max_to_keep=cfg.num_checkpoints)
-
-    train_writer = tf.summary.FileWriter(logdir_copy)
-    train_writer.add_graph(true_model.get_graph())
-    # train_writer.add_graph(copy_model.get_graph())
-
-    torch.manual_seed(12)
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-    p_epochs = 3  # Number of substitute epochs
-    epochs = 10  # Number of epochs to train the model at each substitute epoch
-    lr = 1e-2  # Learning rate
-    lambda_ = 0.1
-
-
-
-    with tf.Session(config=config) as sess:
-        sess.run(tf.global_variables_initializer())
-        orig_saver.restore(sess, tf.train.latest_checkpoint(logdir_true))
-        tf.logging.info('Model restored!')
-
-        img_array=pt_to_numpy('src/substitute/data/training_set_0')
-        prediction=np.argmax(get_jdba_prediction(sess,true_model,img_array),axis=1)
-        tensor = torch.from_numpy(prediction)
-
-        substitute_dataset = SubstituteDataset(
-            root_dir='src/substitute/data/training_set_0',
-            get_predictions=get_jdba_prediction,
-            transform=None,
-            labels=tensor
-        )
-
-        substitute_model = SubstituteModel()
-        substitute_model.to(device)
-
-        for p in trange(p_epochs + 1, desc='Substitute training'):
-            # STEP 3: Labeling with oracle, we use get_oracle_prediction to do that, which we
-            # treat as a black box in which we only can see the outputs, that is O(x) = label
-            img_array = pt_to_numpy(f'src/substitute/data/training_set_{p}')
-            prediction = np.argmax(get_jdba_prediction(sess, true_model, img_array), axis=1)
-            tensor = torch.from_numpy(prediction)
-            substitute_dataset = SubstituteDataset(
-                root_dir=f'src/substitute/data/training_set_{p}',
-                get_predictions=get_oracle_prediction,
-                transform=None,
-                labels=tensor
-            )
-            train_dataloader = DataLoader(
-                substitute_dataset,
-                batch_size=8,
-                shuffle=True
-            )
-
-            # STEP 4: Training the substitute model
-            substitute_model.train_model(train_dataloader, epochs=epochs, lr=lr)
-
-            # STEP 5: Jacobian dataset augmentation
-            substitute_model.jacobian_dataset_augmentation(
-                substitute_dataset=substitute_dataset,
-                p=(p + 1),
-                lambda_=lambda_,
-                root_dir=f'src/substitute/data/training_set_{p + 1}',
-            )
-
-            # Let's save the model at each substitute epoch p
-            torch.save(substitute_model.state_dict(), f'models/substitute_model_p_{p}.pt')
-
-        # Final substitute model
-        torch.save(substitute_model.state_dict(), f'models/substitute_model.pt')
-
+        print(( "first agreement 0.9 at {} item" .format( firts_attach)))
