@@ -101,9 +101,9 @@ def train(model, model_head, nce_average, criterion, optimizer, epoch, args,
 
     for j in range(5):
         normal_my = torch.from_numpy(data_bn[50 * j:50 * (j + 1)])  # :50
-        # 所有恶意数据一起训练
+        # 
         # anormal_my = torch.from_numpy(data_un[30 * (j+1):30 * (j + 2)])
-        # 选一种样本训练
+        # 
         anormal_my = torch.from_numpy(data_ml[40 * j:  30 + 40 * j])  # uncertain30、kcenter60、ADFL90、ADFLK120
 
         data = torch.cat((normal_my, anormal_my), dim=0)
@@ -179,9 +179,9 @@ def train_single_attack( model, model_head, nce_average, criterion, optimizer,
 
     for j in range(3):
         normal_my = torch.from_numpy(data_bn[20 * j:20 * (j + 1)])  #
-        # 所有恶意数据一起训练
+        # 
         # anormal_my = torch.from_numpy(data_un[30 * (j+1):30 * (j + 2)])
-        # 选一种样本训练
+        # 
         anormal_my = torch.from_numpy(data_ml[0+10 * j:  0+ 10 * (j + 1)])  # kcneter0、uncertian40、ADFL80、ADFLK120,knockoff160
 
         data = torch.cat((normal_my, anormal_my), dim=0)
