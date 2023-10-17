@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-# 导入基本库
+
 from sklearn.svm import SVC
 from sklearn.model_selection import train_test_split
 import numpy as np
@@ -10,19 +10,19 @@ import  random
 def clip(train_part,tr_y):
     combined_array = list(zip(train_part, tr_y))
 
-    # 将打乱后的元组列表拆分回两个数组
+    
     shuffled_array1, shuffled_array2 = zip(*combined_array)
 
     X_train, X_test, y_train, y_test = train_test_split(
-        shuffled_array1, shuffled_array2, test_size=0.4)  # 按照比例划分数据集为训练集与测试集
+        shuffled_array1, shuffled_array2, test_size=0.4)  
 
     return X_train, y_train, X_test, y_test
 
 def random_reverse_array(arr):
     """
-    将输入的 numpy array 随机排列，并将元素顺序进行颠倒
+    
     """
-    # 将数组进行随机排列
+    
     random.shuffle(arr)
     return arr
 def my_read_data(dataset,length):
@@ -72,16 +72,16 @@ def shang(probs):
 def acc(b_ac,m_ac):
     return b_ac*0.4+m_ac*0.6
 
-def entropy1(data):    #返回每个样本的指数
+def entropy1(data):    
     n=np.shape(data)[0]
     sumzb=np.sum(data,axis=0)
     data=data/sumzb
-    #对ln0处理
+    #
     a=data*1.0
     a[np.where(data==0)]=0.0001
-#    #计算每个指标的熵
+#    #
     e=(-1.0/np.log(n))*np.sum(data*np.log(a),axis=0)
-#    #计算权重
+#    #
     w=(1-e)/np.sum(1-e)
     w = [round(i,4) for i in w]
     #print(w)
@@ -119,10 +119,10 @@ b_train_x,b_train_y,b_test_x,b_test_y=clip(data_bn[:200],[0]*200)
 
 X_train =np.concatenate([kcenter_train_x,uncertainty_train_x,dfal_train_x,dfalk_train_x,knockoff_train_x,b_train_x])
 y_train = np.concatenate([kcenter_train_y,uncertainty_train_y,dfal_train_y,dfalk_train_y,knockoff_train_y,b_train_y])
-# 创建一个SVM分类器并进行预测
-clf = SVC(kernel='poly',C=1,degree=1,coef0=2,cache_size=1000,random_state=60)#创建SVM训练模型
+# 
+clf = SVC(kernel='poly',C=1,degree=1,coef0=2,cache_size=1000,random_state=60)#
 # clf=SVC()
-clf.fit(X_train,y_train)#对训练集数据进行训练
+clf.fit(X_train,y_train)#
 print("##benign##")
 b_predict=clf.predict(b_test_x)
 benign_scores = calc_similarity(b_predict,b_test_y)
