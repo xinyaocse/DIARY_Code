@@ -226,22 +226,22 @@ def my_read_data_encode_mnist():
     return malicious, benign
 
 
-# 双层LSTM模型
+# 
 def DoubleLSTM(train_x, train_y, test_x, test_y):  # valid_x, valid_y,
-    # 创建模型
+    # 
     model = Sequential()
-    model.add(LSTM(24, input_shape=(test_lunci, 2000), return_sequences=True))  # 返回所有节点的输出
-    model.add(LSTM(12, return_sequences=False))  # 返回最后一个节点的输出
+    model.add(LSTM(24, input_shape=(test_lunci, 2000), return_sequences=True))  # 
+    model.add(LSTM(12, return_sequences=False))  # 
     # model.add(Dense(3, activation='softmax'))
-    # 查看网络结构
+    # 
     model.summary()
-    # 编译模型
+    # 
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-    # 训练模型
+    # 
     return model
     # model.fit(train_x, train_y, batch_size=6, epochs=10, verbose=2)#, validation_data=(valid_x, valid_y)
     #
-    # # 评估模型
+    # # 
     # pre = model.evaluate(test_x, test_y, batch_size=500, verbose=2)
     # out=model.predict(test_x)
     # print('test_loss:', pre[0], '- test_acc:', pre[1])
