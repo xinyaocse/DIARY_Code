@@ -69,18 +69,18 @@ def my_read_data_encode_mnist():
     return malicious, benign
 
 
-# 双层LSTM模型
+# 
 def DoubleLSTM(train_x, train_y):  # valid_x, valid_y,
-    # 创建模型
+    # 
     model = Sequential()
-    model.add(LSTM(24, input_shape=(test_lunci, 2000), return_sequences=True))  # 返回所有节点的输出
-    model.add(LSTM(12, return_sequences=False))  # 返回最后一个节点的输出
+    model.add(LSTM(24, input_shape=(test_lunci, 2000), return_sequences=True))  # 
+    model.add(LSTM(12, return_sequences=False))  # 
     model.add(Dense(2, activation='softmax'))
-    # 查看网络结构
+    # 
     model.summary()
-    # 编译模型
+    # 
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-    # 训练模型
+    # 
     model.fit(train_x, train_y, batch_size=6, epochs=10, verbose=2)  # , validation_data=(valid_x, valid_y)
     return model
 
@@ -88,8 +88,8 @@ def DoubleLSTM(train_x, train_y):  # valid_x, valid_y,
 
 if __name__ == "__main__":
 
-    ##UNsupervise实验
-    # train_x, train_y, test_x = my_read_data_mnist_shiyan()#原始
+    ##UNsupervise
+    # train_x, train_y, test_x = my_read_data_mnist_shiyan()#
     malicious, benign = my_read_data_encode_mnist()
 
     train_x = np.concatenate([malicious[40:70], benign[:60]])#0-30 kcenter 40-70 uncertainty ,80-110 dfal , 120-150 dfalk
