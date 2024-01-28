@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-# 导入基本库
+# 
 from sklearn.svm import SVC
 from sklearn.model_selection import train_test_split
 import numpy as np
@@ -10,19 +10,17 @@ import  random
 def clip(train_part,tr_y):
     combined_array = list(zip(train_part, tr_y))
 
-    # 将打乱后的元组列表拆分回两个数组
+    # 
     shuffled_array1, shuffled_array2 = zip(*combined_array)
 
     X_train, X_test, y_train, y_test = train_test_split(
-        shuffled_array1, shuffled_array2, test_size=0.4)  # 按照比例划分数据集为训练集与测试集
+        shuffled_array1, shuffled_array2, test_size=0.4)  #
 
     return X_train, y_train, X_test, y_test
 
 def random_reverse_array(arr):
-    """
-    将输入的 numpy array 随机排列，并将元素顺序进行颠倒
-    """
-    # 将数组进行随机排列
+    
+    # 
     random.shuffle(arr)
     return arr
 def my_read_data(dataset,length):
@@ -72,16 +70,16 @@ def shang(probs):
 def acc(b_ac,m_ac):
     return b_ac*0.4+m_ac*0.6
 
-def entropy1(data):    #返回每个样本的指数
+def entropy1(data):    #
     n=np.shape(data)[0]
     sumzb=np.sum(data,axis=0)
     data=data/sumzb
-    #对ln0处理
+    #
     a=data*1.0
     a[np.where(data==0)]=0.0001
-#    #计算每个指标的熵
+#    #
     e=(-1.0/np.log(n))*np.sum(data*np.log(a),axis=0)
-#    #计算权重
+#    #
     w=(1-e)/np.sum(1-e)
     w = [round(i,4) for i in w]
     #print(w)
