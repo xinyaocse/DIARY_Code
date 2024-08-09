@@ -241,7 +241,6 @@ def DoubleLSTM(train_x, train_y, test_x, test_y):  # valid_x, valid_y,
     return model
     # model.fit(train_x, train_y, batch_size=6, epochs=10, verbose=2)#, validation_data=(valid_x, valid_y)
     #
-    # # 
     # pre = model.evaluate(test_x, test_y, batch_size=500, verbose=2)
     # out=model.predict(test_x)
     # print('test_loss:', pre[0], '- test_acc:', pre[1])
