@@ -274,8 +274,6 @@ if __name__ == '__main__':
 
 
 
-
-
     print("========================================Loading Validation Data========================================")
     val_spatial_transform = spatial_transforms.Compose([
         spatial_transforms.Scale(args.sample_size),
@@ -283,7 +281,6 @@ if __name__ == '__main__':
         spatial_transforms.ToTensor(args.norm_value),
         spatial_transforms.Normalize([0], [1])
     ])
-
 
 
     print(
@@ -303,7 +300,7 @@ if __name__ == '__main__':
         model_head.cuda()
 
     if args.method == "all":
-        # len_neg, len_pos=49600,15800#150,200
+        # len_neg, len_pos=49600,15800 #150,200
         len_neg = 150
         len_pos = 250
         num_val_data = 250
